@@ -1,0 +1,55 @@
+<div class="container">
+  <div class="card mt-3">
+    <div class="card-header d-flex">
+      <span class="me-4">File System</span>
+      <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+          <li
+            class="breadcrumb-item"
+            (click)="onBreadcrumbClick(-1)"
+            aria-current="page"
+          >
+            Home
+          </li>
+          <li
+            class="breadcrumb-item"
+            *ngFor="let item of breadCrumbs; let i = index"
+            (click)="onBreadcrumbClick(i)"
+          >
+            {{ item }}
+          </li>
+        </ol>
+      </nav>
+    </div>
+    <div class="card-body">
+      <ul class="list-group">
+        <li
+          class="list-group-item d-flex highlight"
+          *ngFor="let item of filesObservable | async"
+          (click)="onObjectChosen(item.displayName, item.type)"
+          (pan)="onObjectChosen(item.displayName, item.type)"
+        >
+          <div class="me-3">
+            <img
+              class="type-icon"
+              [src]="
+                item.type === 1
+                  ? '../../../assets/folder.svg'
+                  : '../../../assets/file.svg'
+              "
+              [alt]="item.type === 1 ? 'folder' : 'file'"
+            />
+          </div>
+          <span class="me-auto">{{ item.displayName }}</span>
+          <img
+            class="action-icon"
+            *ngIf="item.type === 0"
+            src="../../../assets/delete.svg"
+            (click)="onDelete()"
+            alt="delete"
+          />
+        </li>
+      </ul>
+    </div>
+  </div>
+</div>

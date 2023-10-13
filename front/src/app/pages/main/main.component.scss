@@ -1,0 +1,31 @@
+.highlight {
+  cursor: default;
+  transition: 0.1s;
+  &:hover {
+    background-color: rgba($color: #000000, $alpha: 0.1);
+  }
+}
+
+.breadcrumb {
+  margin-bottom: 0;
+}
+
+.type-icon {
+  max-width: 20px;
+}
+
+.action-icon {
+  max-width: 20px;
+  cursor: pointer;
+  &:hover {
+    opacity: 0.4;
+  }
+}
+
+.breadcrumb-item {
+  cursor: pointer;
+  
+  &:hover {
+    text-decoration: underline;
+  }
+}
