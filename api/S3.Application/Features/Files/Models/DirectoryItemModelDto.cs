@@ -5,6 +5,7 @@ public class DirectoryItemModelDto
     public string Key { get; set; } = "";
     public string DisplayName { get; set; } = "";
     public ObjectType Type { get; set; }
+    public string DownloadUrl { get; set; } = "";
 }
 
 public enum ObjectType

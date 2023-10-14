@@ -11,9 +11,9 @@ export class S3Service {
   constructor(private http: HttpClient) {}
 
   public getFileNames(key: string = ''): Observable<DirectoryItemModelDto[]> {
-    // return this.http.get<DirectoryItemModelDto[]>(
-    //   `${environment.webApi}/get${key ? `?directoryPath=${key}` : ''}`
-    // );
+    return this.http.get<DirectoryItemModelDto[]>(
+      `${environment.webApi}/get${key ? `?directoryPath=${key}` : ''}`
+    );
 
     return of([
       {

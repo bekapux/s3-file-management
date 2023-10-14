@@ -13,21 +13,20 @@
           </li>
           <li
             class="breadcrumb-item"
-            *ngFor="let item of breadCrumbs; let i = index"
+            *ngFor="let breadcrumb of breadCrumbs; let i = index"
             (click)="onBreadcrumbClick(i)"
           >
-            {{ item }}
+            {{ breadcrumb }}
           </li>
         </ol>
       </nav>
     </div>
     <div class="card-body">
-      <ul class="list-group">
+      <ul class="list-group" *ngIf="objects">
         <li
           class="list-group-item d-flex highlight"
-          *ngFor="let item of filesObservable | async"
+          *ngFor="let item of objects"
           (click)="onObjectChosen(item.displayName, item.type)"
-          (pan)="onObjectChosen(item.displayName, item.type)"
         >
           <div class="me-3">
             <img
@@ -40,14 +39,33 @@
               [alt]="item.type === 1 ? 'folder' : 'file'"
             />
           </div>
-          <span class="me-auto">{{ item.displayName }}</span>
+          <span *ngIf="!item.downloadUrl" class="me-auto">{{
+            item.displayName
+          }}</span>
+          <a
+            *ngIf="item.downloadUrl"
+            [href]="item.downloadUrl"
+            target="_blank"
+            class="me-auto"
+            >{{ item.displayName }}</a
+          >
           <img
             class="action-icon"
             *ngIf="item.type === 0"
             src="../../../assets/delete.svg"
-            (click)="onDelete()"
+            (click)="onDelete(item.key)"
             alt="delete"
           />
+        </li>
+      </ul>
+      <ul class="list-group" *ngIf="objects.length === 0">
+        <li
+          class="list-group-item d-flex highlight placeholder-glow"
+          *ngFor="let item of randomNumbers"
+        >
+          <span style="max-width: 25px;" class="placeholder col-1 me-3"></span>
+          <span class="placeholder col-{{ item }} me-auto"></span>
+          <span class="placeholder col-1"></span>
         </li>
       </ul>
     </div>

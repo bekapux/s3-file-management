@@ -44,6 +44,8 @@ public class S3Service : IFileService
 
     public async Task<IEnumerable<DirectoryItemModelDto>> ListFilesInDirectory(string? directoryPath)
     {
+        directoryPath ??= "";
+
         var request = new ListObjectsV2Request
         {
             BucketName = _bucketName,
@@ -56,20 +58,33 @@ public class S3Service : IFileService
 
         foreach (var item in response.S3Objects)
         {
-            ObjectType type = item.Key[1..].Contains('/') ? ObjectType.Folder : ObjectType.File;
+            var objectName = RemovePrefix(item.Key, directoryPath);
+
+            if (objectName.StartsWith("/")) 
+                objectName = objectName[1..];
+
+            ObjectType type = objectName.Contains('/') ? ObjectType.Folder : ObjectType.File;
 
             if (type == ObjectType.File)
             {
+                var downloadUrl = _s3Client.GetPreSignedURL(new GetPreSignedUrlRequest()
+                {
+                    BucketName = _bucketName,
+                    Key = item.Key,
+                    Expires = DateTime.UtcNow.AddMinutes(10),
+                });
+
                 result.Add(new DirectoryItemModelDto
                 {
                     Key = item.Key,
-                    DisplayName = item.Key[1..],
+                    DisplayName = objectName,
                     Type = ObjectType.File,
+                    DownloadUrl = downloadUrl,
                 });
             }
             else if (type == ObjectType.Folder)
             {
-                var folderName = item.Key.Split("/")[0];
+                var folderName = objectName.Split('/')[0];
 
                 if (FolderIsNotUnique(result, folderName)) continue;
 
@@ -83,11 +98,21 @@ public class S3Service : IFileService
 
         return result
             .OrderByDescending(x => x.Type)
-            .ThenBy(x=> x.DisplayName);
+            .ThenBy(x => x.DisplayName);
     }
 
     private static bool FolderIsNotUnique(List<DirectoryItemModelDto> result, string folderName)
     {
         return result.Any(x => x.DisplayName == folderName && x.Type == ObjectType.Folder);
+    }
+
+    private static string RemovePrefix(string source, string? prefix)
+    {
+        if (source.StartsWith(prefix ?? ""))
+        {
+            return source.Substring((prefix ?? "").Length);
+        }
+
+        return source;
     }
 }
