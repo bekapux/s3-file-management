@@ -1,8 +1,5 @@
-using MediatR;
 using S3.API.Controllers;
 using S3.Application;
-using S3.Application.Features.Files.Commands;
-using S3.Application.Features.Files.Queries;
 using S3.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -19,6 +16,7 @@ builder.Services.AddCors(o =>
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
 builder.Services.RegisterApplicationServices();
 builder.Services.RegisterInfrastructureServices(builder.Configuration);
 
