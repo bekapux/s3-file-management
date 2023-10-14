@@ -1,7 +1,4 @@
-﻿using Microsoft.Extensions.Configuration;
-using S3.Application.Features.Files.Models;
-
-namespace S3.Infrastructure.Services;
+﻿namespace S3.Infrastructure.Services;
 
 public class S3Service : IFileService
 {
@@ -9,7 +6,6 @@ public class S3Service : IFileService
 
     private readonly IAmazonS3 _s3Client;
     private readonly string _bucketName;
-
 
     public S3Service(IConfiguration configuration, IAmazonS3 amazonS3)
     {
@@ -28,7 +24,7 @@ public class S3Service : IFileService
             InputStream = fileContent
         };
 
-        var result = await _s3Client.PutObjectAsync(request);
+        await _s3Client.PutObjectAsync(request);
     }
 
     public async Task DeleteFile(string filePath)
@@ -56,37 +52,35 @@ public class S3Service : IFileService
 
         var result = new List<DirectoryItemModelDto>();
 
+        var addedFolderNames = new HashSet<string>();
+
         foreach (var item in response.S3Objects)
         {
             var objectName = RemovePrefix(item.Key, directoryPath);
 
-            if (objectName.StartsWith("/")) 
+            if (objectName.StartsWith("/"))
                 objectName = objectName[1..];
 
-            ObjectType type = objectName.Contains('/') ? ObjectType.Folder : ObjectType.File;
+            ObjectType type = GetObjectType(objectName);
 
             if (type == ObjectType.File)
             {
-                var downloadUrl = _s3Client.GetPreSignedURL(new GetPreSignedUrlRequest()
-                {
-                    BucketName = _bucketName,
-                    Key = item.Key,
-                    Expires = DateTime.UtcNow.AddMinutes(10),
-                });
 
                 result.Add(new DirectoryItemModelDto
                 {
                     Key = item.Key,
                     DisplayName = objectName,
                     Type = ObjectType.File,
-                    DownloadUrl = downloadUrl,
+                    DownloadUrl = GenerateDownloadUrl(item),
                 });
             }
             else if (type == ObjectType.Folder)
             {
                 var folderName = objectName.Split('/')[0];
 
-                if (FolderIsNotUnique(result, folderName)) continue;
+                if (addedFolderNames.Contains(folderName)) continue;
+
+                addedFolderNames.Add(folderName);
 
                 result.Add(new DirectoryItemModelDto
                 {
@@ -101,18 +95,26 @@ public class S3Service : IFileService
             .ThenBy(x => x.DisplayName);
     }
 
-    private static bool FolderIsNotUnique(List<DirectoryItemModelDto> result, string folderName)
-    {
-        return result.Any(x => x.DisplayName == folderName && x.Type == ObjectType.Folder);
-    }
+    #region Private Members
+
+    private string GenerateDownloadUrl(S3Object? item) =>
+        _s3Client.GetPreSignedURL(new GetPreSignedUrlRequest()
+        {
+            BucketName = _bucketName,
+            Key = item?.Key,
+            Expires = DateTime.UtcNow.AddMinutes(10),
+        });
+
+    private static ObjectType GetObjectType(string objectName) =>
+        objectName.Contains('/') ? ObjectType.Folder : ObjectType.File;
 
     private static string RemovePrefix(string source, string? prefix)
     {
         if (source.StartsWith(prefix ?? ""))
-        {
-            return source.Substring((prefix ?? "").Length);
-        }
+            return source[(prefix ?? "").Length..];
 
         return source;
     }
+
+    #endregion
 }

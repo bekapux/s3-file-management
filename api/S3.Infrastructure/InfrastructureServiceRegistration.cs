@@ -1,9 +1,9 @@
 ﻿global using Amazon.S3;
 global using Amazon.S3.Model;
+global using Microsoft.Extensions.Configuration;
+global using S3.Application.Features.Files.Models;
 global using S3.Application.Interfaces;
 using Amazon;
-using Amazon.Extensions.NETCore.Setup;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using S3.Infrastructure.Services;
 
